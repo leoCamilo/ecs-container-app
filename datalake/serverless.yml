@@ -1,0 +1,37 @@
+service: infra-datalake
+
+package:
+  exclude:
+    - .idea/**
+    - .serverless/**
+    - division-config/**
+    - node_modules/**
+    - package-lock.json
+    - package.json
+    - README.md
+
+custom:
+  tags: ${file(tags.yml)}
+  stackName: ${self:service}-${self:provider.stage}
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  stackTags: ${self:custom.tags}
+
+resources:
+  - ${file(resources/s3.yml)}
+
+  - Outputs:
+      DeploymentBucket:
+        Description: S3 deployment bucket name
+        Value: !Ref DeploymentBucket
+        Export:
+          Name: S3DeploymentBucketName
+
+      DeploymentBucketArn:
+        Description: S3 deployment bucket arn
+        Value: !GetAtt DeploymentBucket.Arn
+        Export:
+          Name: S3DeploymentBucketArn

@@ -1,0 +1,5 @@
+Resources:
+  DeploymentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:provider.stage}-leocamilo-deployment-bucket
