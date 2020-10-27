@@ -1,0 +1,2 @@
+infraDatalake: infra-datalake-${self:provider.stage}
+infraNetwork: infra-network-${self:provider.stage}
