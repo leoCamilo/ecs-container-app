@@ -1,0 +1,48 @@
+service: infra-network
+
+package:
+  exclude:
+    - .idea/**
+    - .serverless/**
+    - division-config/**
+    - node_modules/**
+    - package-lock.json
+    - package.json
+    - README.md
+
+custom:
+  tags: ${file(tags.yml)}
+  stackName: ${self:service}-${self:provider.stage}
+  stageVars: ${file(stage-variables.yml)}
+  projects: ${file(../projects.yml)}
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  stackTags: ${self:custom.tags}
+  deploymentBucket: ${self:custom.stageVars.deploymentBucket}
+  logRetentionInDays: 7
+
+
+resources:
+  - ${file(resources/public-vpc.yml)}
+
+  - Outputs:
+      PublicVPC:
+        Description: VPC reference for other projects
+        Value: !Ref VPC
+        Export:
+          Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicVPC' ] ]
+
+      PublicSubnetOne:
+        Description: Public subnet one
+        Value: !Ref PublicSubnetOne
+        Export:
+          Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetOne' ] ]
+
+      PublicSubnetTwo:
+        Description: Public subnet two
+        Value: !Ref PublicSubnetTwo
+        Export:
+          Name: !Join [ ':', [ !Ref 'AWS::StackName', 'PublicSubnetTwo' ] ]

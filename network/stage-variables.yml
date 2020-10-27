@@ -1,0 +1,2 @@
+deploymentBucket: ${cf:${self:custom.projects.infraDatalake}.DeploymentBucket}
+deploymentBucketArn: ${cf:${self:custom.projects.infraDatalake}.DeploymentBucketArn}
