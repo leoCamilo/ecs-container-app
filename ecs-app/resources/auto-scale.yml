@@ -1,0 +1,92 @@
+Resources:
+  ScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      ServiceNamespace: 'ecs'
+      ScalableDimension: 'ecs:service:DesiredCount'
+      ResourceId: !Join ['/', [ service, !Ref ECSCluster, !GetAtt Service.Name]]
+      MaxCapacity: 5
+      MinCapacity: 2
+      RoleARN: !GetAtt AutoScalingECSRole.Arn
+
+  # Create scaling policies that describe how to scale the service up and down.
+  ScaleDownPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: ScalableTarget
+    Properties:
+      PolicyName: ${self:custom.stageVars.ecs.exampleService.serviceName}-scaleDown
+      ResourceId: !Join ['/', [ service, !Ref ECSCluster, !GetAtt Service.Name]]
+      PolicyType: StepScaling
+      ScalableDimension: 'ecs:service:DesiredCount'
+      ServiceNamespace: 'ecs'
+      StepScalingPolicyConfiguration:
+        AdjustmentType: 'ChangeInCapacity'
+        StepAdjustments:
+          - MetricIntervalUpperBound: 0
+            ScalingAdjustment: -1
+        MetricAggregationType: 'Average'
+        Cooldown: 60
+
+  ScaleUpPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    DependsOn: ScalableTarget
+    Properties:
+      PolicyName: ${self:custom.stageVars.ecs.exampleService.serviceName}-scaleUp
+      ResourceId: !Join ['/', [ service, !Ref ECSCluster, !GetAtt Service.Name]]
+      PolicyType: StepScaling
+      ScalableDimension: 'ecs:service:DesiredCount'
+      ServiceNamespace: 'ecs'
+      StepScalingPolicyConfiguration:
+        AdjustmentType: 'ChangeInCapacity'
+        StepAdjustments:
+          - MetricIntervalLowerBound: 0
+            MetricIntervalUpperBound: 15
+            ScalingAdjustment: 1
+          - MetricIntervalLowerBound: 15
+            MetricIntervalUpperBound: 25
+            ScalingAdjustment: 2
+          - MetricIntervalLowerBound: 25
+            ScalingAdjustment: 3
+        MetricAggregationType: 'Average'
+        Cooldown: 60
+
+  # Create alarms to trigger the scaling policies
+  LowCpuUsageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: low-cpu-${self:custom.stageVars.ecs.exampleService.serviceName}
+      AlarmDescription: "Low CPU utilization for service ${self:custom.stageVars.ecs.exampleService.serviceName}"
+      MetricName: CPUUtilization
+      Namespace: AWS/ECS
+      Dimensions:
+        - Name: ServiceName
+          Value: !GetAtt Service.Name
+        - Name: ClusterName
+          Value: !Ref ECSCluster
+      Statistic: Average
+      EvaluationPeriods: 1
+      Threshold: 20
+      Period: 60
+      ComparisonOperator: LessThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref ScaleDownPolicy
+
+  HighCpuUsageAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: high-cpu-${self:custom.stageVars.ecs.exampleService.serviceName}
+      AlarmDescription: "High CPU utilization for service ${self:custom.stageVars.ecs.exampleService.serviceName}"
+      MetricName: CPUUtilization
+      Namespace: AWS/ECS
+      Dimensions:
+        - Name: ServiceName
+          Value: !GetAtt Service.Name
+        - Name: ClusterName
+          Value: !Ref ECSCluster
+      Statistic: Average
+      EvaluationPeriods: 1
+      Threshold: 70
+      Period: 60
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref ScaleUpPolicy

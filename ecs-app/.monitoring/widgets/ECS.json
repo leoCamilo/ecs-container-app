@@ -1,0 +1,21 @@
+{
+	"Consumption": {
+		"metrics": [
+			[
+				"AWS/ECS",
+				"MemoryUtilization",
+				"ServiceName",
+				"${self:custom.stageVars.ecs.exampleService.serviceName}",
+				"ClusterName",
+				"${self:custom.stackName}-Cluster"
+			],
+			[ ".", "CPUUtilization", ".", ".", ".", "." ]
+		],
+		"view": "timeSeries",
+		"title": "ECS consumption",
+		"region": "${self:provider.region}",
+		"stat": "Maximum",
+		"stacked": false,
+		"period": 60
+	}
+}

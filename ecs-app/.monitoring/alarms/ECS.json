@@ -1,0 +1,25 @@
+{
+	"HighMemoryConsumption": {
+		"Type": "AWS::CloudWatch::Alarm",
+		"Properties": {
+			"AlarmName": "${self:custom.stackName}-out-of-memory",
+			"AlarmDescription": "When the memory consumption gets to high",
+			"AlarmActions": [
+				"${self:custom.stageVars.snsToAlarmNotification}"
+			],
+			"Namespace": "AWS/ECS",
+			"MetricName": "MemoryUtilization",
+			"Statistic": "Maximum",
+			"Period": "60",
+			"Dimensions": [
+				{
+					"Name": "ClusterName",
+					"Value": { "Ref" : "ECSCluster" }
+				}
+			],
+			"EvaluationPeriods": "3",
+			"ComparisonOperator": "GreaterThanThreshold",
+			"Threshold": "85"
+		}
+	}
+}

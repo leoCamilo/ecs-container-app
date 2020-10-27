@@ -1,0 +1,6 @@
+Resources:
+# Monitor
+  MonitorDashboardV1: ${file(.monitoring/dashboard.js)}
+
+# ECS
+  # EcsMemoryConsumption: ${file(.monitoring/alarms/ECS.json):HighMemoryConsumption}

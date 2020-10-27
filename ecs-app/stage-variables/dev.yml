@@ -1,0 +1,17 @@
+deploymentBucket: ${cf:${self:custom.projects.infraDatalake}.DeploymentBucket}
+
+network:
+  vpcId: ${cf:${self:custom.projects.infraNetwork}.PublicVPC}
+  subnet1: ${cf:${self:custom.projects.infraNetwork}.PublicSubnetOne}
+  subnet2: ${cf:${self:custom.projects.infraNetwork}.PublicSubnetTwo}
+
+ecs:
+  exampleService:
+    serviceName: ${self:custom.stackName}-nginx
+    port: 80          # What port number the application inside the docker container is binding to
+    cpu: 256          # How much CPU to give the container. 1024 is 1 CPU
+    memory: 512       # How much memory in megabytes to give the container
+    desiredCount: 2   # How many copies of the service task to run
+    priority: 1       # The priority for the routing rule added to the load balancer. This only applies if your have multiple services which have been assigned to different paths on the load balancer.
+    imageUrl: nginx   # The url of a docker image that contains the application process that will handle the traffic for this service
+    path: '*'         # A path on the public load balancer that this service should be connected to. Use * to send all load balancer traffic to this service.
